@@ -1,0 +1,340 @@
+\documentclass{article}
+\usepackage{amsmath} %This allows me to use the align functionality.
+                     %If you find yourself trying to replicate
+                     %something you found online, ensure you're
+                     %loading the necessary packages!
+\usepackage{amsfonts}%Math font
+\usepackage{graphicx}%For including graphics
+\usepackage{hyperref}%For Hyperlinks
+\usepackage[shortlabels]{enumitem}% For enumerated lists with labels specified
+                                  % We had to run tlmgr_install("enumitem") in R
+\hypersetup{colorlinks = true,citecolor=black} %set citations to have black (not green) color
+\usepackage{natbib}        %For the bibliography
+\setlength{\bibsep}{0pt plus 0.3ex}
+\bibliographystyle{apalike}%For the bibliography
+\usepackage[margin=0.50in]{geometry}
+\usepackage{float}
+\usepackage{multicol}
+
+%fix for figures
+\usepackage{caption}
+\newenvironment{Figure}
+  {\par\medskip\noindent\minipage{\linewidth}}
+  {\endminipage\par\medskip}
+\begin{document}
+
+\vspace{-1in}
+\title{Lab 2 -- MATH 240 -- Computational Statistics}
+
+\author{
+  Ben Horner \\
+  Colgate University  \\
+  Math Department  \\
+  {\tt bhorner@colgate.edu}
+}
+
+\date{Febuary 13, 2025}
+
+\maketitle
+
+\begin{multicols}{2}
+\begin{abstract}
+In an attempt to determine which band contributed most to the song \emph{Allentown} by Manchester Orchestra and the Front Bottoms we analyze the Essentia data of their songs. Beginning with the \texttt{.wav} files for each of their songs, we convert them to a batch file of \texttt{.json} outputs which we can run through Essentia. 
+
+\end{abstract}
+
+\noindent \textbf{Keywords:} Batch File, Data Processing, Music, Essentia
+
+\section{Introduction}
+  In 2018, two of Professor Cipolli's favorite bands -- The Front Bottoms and Manchester Orchestra - released a song they collaborated on called Allentown. In a statement to Noisey --  the music arm of Vice -- Andy Hull of Manchester Orchestra recalled that the creation of this track started when Nate Hussey of All Get Out sent him the first four lines of the track. Andy Hull worked out the melody and music and shared it with Brian Sella of The Front Bottoms, who then helped develop the chorus.
+
+\textbf{This brings us to an interesting question:} which band contributed most to the song?
+ 
+ 
+\subsection{Task}
+  To attempt to answer this question, we need to know what each band ``sounds like." This can be done by using Essentia -- an open-source program for music analysis, description, and synthesis -- to create data about each band's tracks \citep{Essentia}. 
+  
+  In this Lab, we create generalized code for building batch file that contains the command to run Essentia on every track. Then, we will clean the data and extract key descriptors from the \texttt{.json} files for each song and the \texttt{.csv} file with data from the Essentia models. 
+
+
+
+\section{Methods}
+  We divide our overall goal in to two tasks. \textbf{Task 1}, where we build the batch files for data processing and \textbf{Task 2}, where we process the data. For this Lab, we use test files created by Professor Cipolli located in a directory labeled ``MUSIC" for \textbf{Task 1} and the actual \texttt{.json} song files in the directory ``EssentiaOutput" for \textbf{Task 2}.
+
+
+\subsection{Task 1: Building a Batch File for Data Processing}
+  To write the code to create the desired batch file, we will need to change the storage format from \texttt{[track number]-[artist]-[track name].wav} to \texttt{[artist name]-[album name]-[track name].json}. We will be using the \texttt{stringr} \citep{stringr} and \texttt{jsonlite} \citep{jsonlite} packages for \texttt{R} throughout the code to split the file names and process \texttt{.json} files.
+  
+<<echo = FALSE, eval = FALSE, size="scriptsize", warning=FALSE, message=FALSE>>=
+library(stringr)
+library(jsonlite)
+@
+
+
+
+
+
+
+For the test \texttt{.wav} files, we isolate the subdirectories (artists and albums) and files (songs) within the \texttt{MUSIC} directory using the \texttt{list\_dirs(), list\_files()} and the \texttt{str\_count()} functions.
+
+<<echo = FALSE, eval = FALSE, size="scriptsize", warning=FALSE, message=FALSE>>=
+artist.dirs = c()
+album.dirs = c()
+for (directory in music.dirs){
+  dir.level <- str_count(directory, pattern = "/")
+  if (dir.level == 1){
+  artist.dirs = append(artist.dirs, directory)
+  }
+  else if (dir.level == 2){
+    album.dirs = append(album.dirs, directory)
+  }
+}
+@
+
+
+
+
+
+  For each album of the test, we isolated each \texttt{.wav} file using \texttt{str\_count()} to subset all \texttt{.wav} files from the current album subdirectory. For each file (song) we then used \texttt{str\_split()} to extract just the track name, which we then pasted together with the artist name, track name, and ``.json" to create the new, desired format for the file name: \texttt{[artist name]-[album name]-[track name].json}.
+  To create the command to run Essentia, we pasted \texttt{streaming\_extractor\_music.exe} to the new file name to create the command line prompt for the current track.
+
+<<echo=FALSE, eval = FALSE, size="scriptsize", warning=FALSE, message=FALSE>>=
+json.files = c()
+for (album in album.dirs){
+  #Splits the string of the directory into Music, Artist, Album
+  split.string = str_split(album, pattern = "/", simplify = TRUE)
+  album.name = split.string[1, 3]
+  artist.name = split.string[1, 2]
+  art.n.album = paste(artist.name, album.name, sep = "-") 
+  #artist and album comined in desired format
+
+  #Lists the music files in each album, goes through them, 
+  #creates the final desired string of 
+  #[artist name]-[album name]-[trackname].json
+  music.files <- list.files(album)
+  for (music.file in music.files){
+    if (str_count(music.file, pattern = ".wav")){
+      #Makes sure we are only dealing with .wav files
+      file.path = str_split(music.file, pattern = ".wav", simplify =  TRUE)
+      file.path = str_split(file.path, pattern = "-", simplify = TRUE)
+      song.name = file.path[1, 3]
+      final.path = paste(art.n.album, "-", song.name, ".json", sep = "")
+      json.files = append(wav.files, final.path) #will contain all of the .wav files in all of the albums 
+    }
+  }
+}
+
+code.to.process = paste("streaming_extractor_music.exe ", json.files)
+@
+
+
+
+
+
+Finally, using the \texttt{writeLines()} function, we wrote the command line for each file to a \texttt{.txt} file called batfile.txt. This code can be generalized for any set of .wav files provided the same initial format of directories and file name.
+
+<<echo=FALSE, eval = FALSE, size="scriptsize", warning=FALSE, message=FALSE>>=
+writeLines(code.to.process, "batfile.txt")
+@
+
+
+
+
+
+
+
+
+\subsection{Task 2: Process JSON Output}
+As a test for our code, we first analyzed the \texttt{.json} output for the song ``Au Revoir (Adios)," by isolating the key descriptors of \texttt{average\_loudness}, \texttt{mean} of \texttt{spectral\_energy, danceability, bpm, key\_key} (musical key) \texttt{key\_scale} (musical mode), and \texttt{length} (duration in seconds). Having tested the code, we then expanded it to our final version using the song ``Au Revoir (Adios)" as an example. 
+
+\subsection{Cleaning the Data}
+  After loading the \texttt{.json} data from ``Au Revoir (Adios)," we extracted the descriptors of artist, album, track, the overall loudness, spectral energy, dissonance, pitch salience, tempo in bpm, beat loudness, danceability, and tuning frequency from the \texttt{.json} file. We can then loop this code through every \texttt{.json} file in the \texttt{EssentiaOutput} folder and save the output as a new dataframe now containing just those song descriptors. 
+  To use the data from the Essentia models, saved in the \texttt{EssentiaModelOutput.csv} file, we extracted the \texttt{valence} and \texttt{arousal}, \texttt{aggressive, happy, party, relaxed}, and \texttt{sad} moods, \texttt{acoustic} and \texttt{electric} sounds, \texttt{instrumental} (absence of voice), and \texttt{timbre} via the average of values from the relevant datasets of DEAM, emoMusic, MuSe, EffNew, and MSD-MusiCNN. We only saved these values in addition to \texttt{artist, album} and \texttt{track}.
+  Finally, we merged the data from the \texttt{streaming\_music\_extractor} calls (the \texttt{.json} files), the Essentia models, and \textbf{LIWCOutput} into one data frame. For future use, we created two separate files: \texttt{trainingdata.csv} that contains all tracks except ``Allentown," and \texttt{testingdata.csv} that contains just the track ``Allentown."
+  All the code is contianed within this \texttt{.Rnw} file (\texttt{echo = FALSE}) and in the \texttt{Lab3Code.R} file of the repository.
+
+<<echo = FALSE, eval = TRUE, size="scriptsize", warning=FALSE, message=FALSE>>=
+library(stringr)
+library(jsonlite)
+
+#Function
+##Extracting Key descriptors
+EssentiaData.function = function(current.file){
+  '
+  Extracts the desired Essentia data from the .json file
+  input -> current file name (current.file)
+  output -> artist, album, song name,
+            overall loudness, spectral energy, dissonance, 
+            pitch salience, bpm, beat loudness, tuning frequency, 
+            danceability
+  '
+  #Loading the JSON data
+  file.path = paste("./EssentiaOutput", current.file, sep = "/")
+  json.data = fromJSON(file.path)
+  
+  split.file.name = str_split(current.file, "-", simplify = TRUE)
+  artist = split.file.name[1, 1]
+  album = split.file.name[1, 2]
+  track = split.file.name[1, 3] #still has .json, need to split one more time
+  track = (str_split(track, ".json", simplify = TRUE))[1, 1]
+  
+  overall.loudness = json.data$lowlevel$loudness_ebu128$integrated 
+  spectral.energy = json.data$lowlevel$spectral_energy$mean 
+  dissonance = json.data$lowlevel$dissonance$mean 
+  pitch.salience = json.data$lowlevel$pitch_salience$mean 
+  bpm = json.data$rhythm$bpm 
+  beat.loudness = json.data$rhythm$beats_loudness$mean 
+  tuning.frequency = json.data$tonal$tuning_frequency 
+  danceability = json.data$rhythm$danceability 
+  
+  output.list = c(overall.loudness, spectral.energy, dissonance, pitch.salience, bpm, 
+                  beat.loudness, tuning.frequency, danceability, artist, album, track)
+  return(output.list)
+}
+
+
+#Checking to keep only .json files
+json.files = c()
+for (file in list.files("./EssentiaOutput")){
+  if (str_count(file, pattern = ".json")){
+    json.files = append(json.files, file)
+  }
+}
+
+#Going through each .json files
+json.df = data.frame()
+for (song in json.files){
+  #Getting Essentia Data
+  output.list = EssentiaData.function(song)
+  #Writing Essentia Data to a data frame
+  current.df = data.frame(artist = output.list[9],
+                          album = output.list[10],
+                          track = output.list[11],
+                          overall_loudness = output.list[1],
+                          spectral_energy = output.list[2],
+                          dissonance = output.list[3],
+                          pitch_salience = output.list[4],
+                          bpm = output.list[5],
+                          beat_loudness = output.list[6],
+                          tuning_frequency = output.list[7],
+                          danceability = output.list[8])
+  
+  json.df = rbind(json.df, current.df) #adding the current row to the total df
+}
+
+
+###################################################################
+#Step 3
+#Loading and cleaning data from the EssentiaModelOutput.csv file
+###################################################################
+#Loading the file
+for (file in list.files("./EssentiaOutput")){
+  if (str_count(file, pattern = ".csv")){
+    EssentiaModel.file = paste("./EssentiaOutput", file, sep = "/")
+  }
+}
+EssentiaModel = read.csv(EssentiaModel.file)
+
+#Computing and adding new columns to the df based on the 
+#existing data avg
+EssentiaModel$valence = (EssentiaModel$deam_valence + 
+                           EssentiaModel$emo_valence + 
+                           EssentiaModel$muse_valence)/3
+
+EssentiaModel$arousal = (EssentiaModel$deam_arousal + 
+                           EssentiaModel$emo_arousal + 
+                           EssentiaModel$muse_arousal)/3
+
+EssentiaModel$aggressive = (EssentiaModel$eff_aggressive +
+                              EssentiaModel$nn_aggressive)/2
+EssentiaModel$happy =(EssentiaModel$eff_happy + 
+                        EssentiaModel$nn_happy)/2
+EssentiaModel$party = (EssentiaModel$eff_party + 
+                         EssentiaModel$nn_party)/2
+EssentiaModel$relaxed = (EssentiaModel$eff_relax +
+                           EssentiaModel$nn_relax)/2
+EssentiaModel$sad = (EssentiaModel$eff_sad + 
+                       EssentiaModel$nn_sad)/2
+EssentiaModel$acoustic = (EssentiaModel$eff_acoustic +
+                            EssentiaModel$nn_acoustic)/2
+EssentiaModel$electric = (EssentiaModel$eff_electronic +
+                            EssentiaModel$nn_electronic)/2
+EssentiaModel$instrumental = (EssentiaModel$eff_instrumental +
+                                EssentiaModel$nn_instrumental)/2
+colnames(EssentiaModel)[48] = "timbreBright"
+
+#Keeping only cleaned data
+EssentiaModel.cleaned = subset(EssentiaModel, 
+                               select = c("artist","album","track",
+                                          "valence", "arousal",
+                                          "aggressive", "happy","party",
+                                          "relaxed","sad", "acoustic",
+                                          "electric", "instrumental",
+                                          "timbreBright"))
+
+
+######################################################################
+#Step 4
+#Loading and Merging cleaned Essentia data with the LIWCOutput file
+######################################################################
+#Loading the file
+LIWCModel = read.csv("./LIWCOutput/LIWCOutput.csv")
+
+#Merging df
+final.df = merge.data.frame(EssentiaModel.cleaned, LIWCModel)
+final.df = merge.data.frame(final.df, json.df)
+colnames(final.df)[which(colnames(final.df)=="function.")] <- "funct"
+
+
+######################################################################
+#Step 5
+#Creating  two separate files
+######################################################################
+#csv containing every track EXCEPT "Allentown"
+not.Allentown = final.df[-which(final.df$track == "Allentown"), ]
+write.csv(not.Allentown, "trainingdata.csv")
+@
+
+<<echo = FALSE, eval = FALSE, size="scriptsize", warning=FALSE, message=FALSE>>=
+#csv containing JUST "Allentown"
+just.Allentown = final.df[which(final.df$track == "Allentown"), ]
+write.csv(just.Allentown, "testingdata.csv")
+@
+
+
+\section{Results}
+To answer our question of which band contributed most to a song, we need to be able to analyze the data of the song to see what it ``sounds like." Having cleaned the data, we can begin to look at the data comparing artists in the key extracted descriptors. An example plot that could possibly give us this insight is comparing the \texttt{feeling} descriptors between artists.
+
+<<plot1, echo = FALSE, eval=FALSE, size='scriptsize'>>=
+#Plot a boxplot of feeling by artist
+feeling.plot = boxplot(feeling ~ artist, data = final.df)
+@
+\begin{figure}[H]
+  \begin{center}
+%This code is evaluated, but not printed
+%warning=FALSE and message=FALSE ensure no text is returned as a by product of printing; this would cause an error in that plot+text is returned instead of just the plot
+<<echo=FALSE, warning=FALSE, message=FALSE, fig.dim=c(5,3.5)>>=
+<<plot1>>
+@
+  \caption{Boxplot of the feeling of each song by artist}
+  \label{plot1}
+  \end{center}
+\end{figure}
+
+\section{Discussion}
+In this Lab, we laid the ground work for analyzing many more songs, as now we have the code to process them into \texttt{.json} files to be output and analyzed for key descriptors. Additionally, we created the code to clean and organize the song data, while getting practice in installing, loading, and using libraries, working with character objects, coding \texttt{for()} loops, and accessing elements of vectors and lists.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Bibliography
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\vspace{2em}
+
+
+\begin{tiny}
+\bibliography{bib}
+\end{tiny}
+\end{multicols}
+
+
+
+\end{document}
