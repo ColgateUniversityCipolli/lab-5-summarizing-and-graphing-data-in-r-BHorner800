@@ -49,6 +49,7 @@ allentown.data = read.csv("./data/essentia.data.allentown.csv")
 other.songs.data = read.csv("./data/essentia.data.csv")
 
 
+
 #Function to summarize each feature
 within.range = function(feature, allentown.data, test.data){
   '
@@ -65,10 +66,10 @@ within.range = function(feature, allentown.data, test.data){
     #Grouping the data by artist
     group_by(artist)|>
     #Summarizing the data (min, lower fence, upper fence, maximum)
-    summarise(min = min(get(feature)),
-              LF = quantile(get(feature), 0.25) - 1.5*IQR(get(feature)),
-              UF = quantile(get(feature), 0.75) + 1.5*IQR(get(feature)),
-              max = max(get(feature))
+    summarise(min = min(get(feature), na.rm = TRUE),
+              LF = quantile(get(feature), 0.25, na.rm = TRUE) - 1.5*IQR(get(feature), na.rm = TRUE),
+              UF = quantile(get(feature), 0.75, na.rm = TRUE) + 1.5*IQR(get(feature), na.rm = TRUE),
+              max = max(get(feature), na.rm = TRUE)
     ) |>
     mutate(out.of.range = allentown.feature < min | allentown.feature > max)|>
     mutate(unusual = allentown.feature < LF | allentown.feature > UF)|>
@@ -82,16 +83,25 @@ within.range = function(feature, allentown.data, test.data){
 
 
 
+
+##############################################################################
+#Step 2
+#Applying function to the data to see in which features Allentown differs from
+#each artist
+##############################################################################
+
 #Looping through each feature of the data
 descriptors.df = data.frame()
 for (feature in colnames(other.songs.data)){
   #Only evaluating numeric features
-  if (is.numeric(allentown.data[[feature]] == TRUE)){
+  if (is.numeric(allentown.data[[feature]])){
+    
     #Running the function
     result = within.range(feature, allentown.data, other.songs.data)
-    
+    #print(result)
   }
-  
 }
 
+
 ?merge()
+?IQR
