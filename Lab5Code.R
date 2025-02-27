@@ -163,8 +163,8 @@ summary.df = data.frame(artist = c("All Get Out",
                         Outlying = count_outlying,
                         Out_of_Range = count_out_of_range)
 
-
-xtable(summary.df)                    
+view(summary.df)
+(xtable(summary.df)                    
 
 
 #####Plotting######

@@ -164,12 +164,10 @@ Counting the number of features, grouped by artist, which are typical of them in
 
 
 % Bar Chart for the DataFrame
-\begin{figure}[ht]
-\centering
-<<echo=FALSE, fig=TRUE, fig.width=6, fig.height=4>>=
+
+<<plot1, echo=FALSE, warning=FALSE, message=FALSE>>=
 library(ggplot2)
 
-library(knitr)
 
 # Reshape the dataframe for plotting
 my_data_long <- reshape(my_data_frame, 
@@ -187,7 +185,16 @@ ggplot(my_data_long, aes(x = artist, y = value, fill = category)) +
        x = "Artist") +
   theme_minimal()
 @
+\begin{figure}[ht]
+  \begin{center}
+  <<echo=FALSE, warning=FALSE, message=FALSE, fig.dim=c(5,3.5)>>=
+<<plot1>>
+@
+\caption{The number of features for each artist that are Within Range, Outlying, or Out of Range.}
+  \label{plot1}
+  \end{center}
 \end{figure}
+\columnbreak
 
 
 % latex table generated in R 4.4.2 by xtable 1.8-4 package
