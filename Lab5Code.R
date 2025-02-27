@@ -165,4 +165,24 @@ summary.df = data.frame(artist = c("All Get Out",
 
 
 xtable(summary.df)                    
-?xtable
+
+
+#####Plotting######
+library(ggplot2)
+
+# Reshape the dataframe for plotting
+my_data_long <- reshape(my_data_frame, 
+                        varying = c("Within_Range", "Outlying", "Out_of_Range"), 
+                        v.names = "value", 
+                        timevar = "category", 
+                        times = c("Within Range", "Outlying", "Out of Range"),
+                        direction = "long")
+
+# Create the bar chart using ggplot2
+ggplot(my_data_long, aes(x = artist, y = value, fill = category)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Category Counts by Artist",
+       y = "Count",
+       x = "Artist") +
+  theme_minimal()
+

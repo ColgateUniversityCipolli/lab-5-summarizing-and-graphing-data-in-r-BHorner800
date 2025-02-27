@@ -161,17 +161,46 @@ To determine each band's contribution to ``Allentown," we summarized the min, ma
 \section{Results}
 Counting the number of features, grouped by artist, which are typical of them indicates that Manchester Orchestra contribtued most to the song ``Allentown." Not only does it have the most number of features that are \emph{Within Range} (183), but also has the least \emph{Out of Range} features with jsut three. The outlying values across all artists are comparable, with All Get Out and The Front Bottoms also having comparable within and out of range values, both differing from Manchester Orchestra. While individual features might be contributed to more heavily by one group, such as the LIWC descriptor \texttt{you} which is \emph{Out of Range} for Manchester Orchestra, but within for the other two artists, in total, ``Allentown" was within the range of the Manchester Orchestra the most.
 
+
+
+% Bar Chart for the DataFrame
+\begin{figure}[ht]
+\centering
+<<echo=FALSE, fig=TRUE, fig.width=6, fig.height=4>>=
+library(ggplot2)
+
+library(knitr)
+
+# Reshape the dataframe for plotting
+my_data_long <- reshape(my_data_frame, 
+                        varying = c("Within_Range", "Outlying", "Out_of_Range"), 
+                        v.names = "value", 
+                        timevar = "category", 
+                        times = c("Within Range", "Outlying", "Out of Range"),
+                        direction = "long")
+
+# Create the bar chart using ggplot2
+ggplot(my_data_long, aes(x = artist, y = value, fill = category)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Category Counts by Artist",
+       y = "Count",
+       x = "Artist") +
+  theme_minimal()
+@
+\end{figure}
+
+
 % latex table generated in R 4.4.2 by xtable 1.8-4 package
-% Thu Feb 27 12:47:13 2025
+% Thu Feb 27 13:00:45 2025
 \begin{table}[ht]
 \centering
 \begin{tabular}{rlrrr}
   \hline
  & artist & Within\_Range & Outlying & Out\_of\_Range \\ 
   \hline
-1 & All Get Out & 158 &  17 &  22 \\ 
-  2 & Manchester Orchestra & 183 &  11 &   3 \\ 
-  3 & The Front Bottoms & 156 &  11 &  30 \\ 
+1 & All Get Out & 158.00 & 17.00 & 22.00 \\ 
+  2 & Manchester Orchestra & 183.00 & 11.00 & 3.00 \\ 
+  3 & The Front Bottoms & 156.00 & 11.00 & 30.00 \\ 
    \hline
 \end{tabular}
 \end{table}
