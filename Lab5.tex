@@ -1,4 +1,54 @@
-\documentclass{article}
+\documentclass{article}\usepackage[]{graphicx}\usepackage[]{xcolor}
+% maxwidth is the original width if it is less than linewidth
+% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
+\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
+\newcommand{\hlsng}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
+\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hldef}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
+\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
+\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
+\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
+\let\hlipl\hlkwb
+
+\usepackage{framed}
+\makeatletter
+\newenvironment{kframe}{%
+ \def\at@end@of@kframe{}%
+ \ifinner\ifhmode%
+  \def\at@end@of@kframe{\end{minipage}}%
+  \begin{minipage}{\columnwidth}%
+ \fi\fi%
+ \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
+ \colorbox{shadecolor}{##1}\hskip-\fboxsep
+     % There is no \\@totalrightmargin, so:
+     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+ \MakeFramed {\advance\hsize-\width
+   \@totalleftmargin\z@ \linewidth\hsize
+   \@setminipage}}%
+ {\par\unskip\endMakeFramed%
+ \at@end@of@kframe}
+\makeatother
+
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
+
+\usepackage{alltt}
 \usepackage{amsmath} %This allows me to use the align functionality.
                      %If you find yourself trying to replicate
                      %something you found online, ensure you're
@@ -21,6 +71,7 @@
 \newenvironment{Figure}
   {\par\medskip\noindent\minipage{\linewidth}}
   {\endminipage\par\medskip}
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
 \begin{document}
 
 \vspace{-1in}
@@ -46,7 +97,7 @@ In an attempt to determine which band contributed most to the song \emph{Allento
 \noindent \textbf{Keywords:} Batch File, Data Processing, Music, Essentia
 
 \section{Introduction}
-  In 2018, two of Professor Cipolli's favorite bands -- The Front Bottoms and Manchester Orchestra -- released a song they collaborated on called Allentown. In a statement to Noisey --  the music arm of Vice -- Andy Hull of Manchester Orchestra recalled that the creation of this track started when Nate Hussey of All Get Out sent him the first four lines of the track. Andy Hull worked out the melody and music and shared it with Brian Sella of The Front Bottoms, who then helped develop the chorus.
+  In 2018, two of Professor Cipolli's favorite bands -- The Front Bottoms and Manchester Orchestra - released a song they collaborated on called Allentown. In a statement to Noisey --  the music arm of Vice -- Andy Hull of Manchester Orchestra recalled that the creation of this track started when Nate Hussey of All Get Out sent him the first four lines of the track. Andy Hull worked out the melody and music and shared it with Brian Sella of The Front Bottoms, who then helped develop the chorus.
 
 \textbf{This brings us to an interesting question:} which band contributed most to the song?
  
@@ -54,7 +105,7 @@ In an attempt to determine which band contributed most to the song \emph{Allento
 \subsection{Task}
   To attempt to answer this question, we need to know what each band ``sounds like." This can be done by using Essentia -- an open-source program for music analysis, description, and synthesis -- to create data about each band's tracks \citep{Essentia}. 
   
-  First, we create generalized code for building batch file that contains the command to run Essentia's extractor on every track. Then, we will clean the data and collect key descriptors from the \texttt{.json} files for each song and merge with the \texttt{.csv} file with data from the Essentia models. 
+  In this Lab, we create generalized code for building batch file that contains the command to run Essentia on every track. Then, we will clean the data and extract key descriptors from the \texttt{.json} files for each song and the \texttt{.csv} file with data from the Essentia models. 
 
 
 
@@ -65,10 +116,7 @@ In an attempt to determine which band contributed most to the song \emph{Allento
 \subsection{Task 1: Building a Batch File for Data Processing}
   To write the code to create the desired batch file, we will need to change the storage format from \texttt{[track number]-[artist]-[track name].wav} to \texttt{[artist name]-[album name]-[track name].json}. We will be using the \texttt{stringr} \citep{stringr} and \texttt{jsonlite} \citep{jsonlite} packages for \texttt{R} throughout the code to split the file names and process \texttt{.json} files.
   
-<<echo = FALSE, eval = FALSE, size="scriptsize", warning=FALSE, message=FALSE>>=
-library(stringr)
-library(jsonlite)
-@
+
 
 
 
@@ -77,19 +125,7 @@ library(jsonlite)
 
 For the test \texttt{.wav} files, we isolate the subdirectories (artists and albums) and files (songs) within the \texttt{MUSIC} directory using the \texttt{list\_dirs(), list\_files()} and the \texttt{str\_count()} functions.
 
-<<echo = FALSE, eval = FALSE, size="scriptsize", warning=FALSE, message=FALSE>>=
-artist.dirs = c()
-album.dirs = c()
-for (directory in music.dirs){
-  dir.level <- str_count(directory, pattern = "/")
-  if (dir.level == 1){
-  artist.dirs = append(artist.dirs, directory)
-  }
-  else if (dir.level == 2){
-    album.dirs = append(album.dirs, directory)
-  }
-}
-@
+
 
 
 
@@ -98,34 +134,7 @@ for (directory in music.dirs){
   For each album of the test, we isolated each \texttt{.wav} file using \texttt{str\_count()} to subset all \texttt{.wav} files from the current album subdirectory. For each file (song) we then used \texttt{str\_split()} to extract just the track name, which we then pasted together with the artist name, track name, and ``.json" to create the new, desired format for the file name: \texttt{[artist name]-[album name]-[track name].json}.
   To create the command to run Essentia, we pasted \texttt{streaming\_extractor\_music.exe} to the new file name to create the command line prompt for the current track.
 
-<<echo=FALSE, eval = FALSE, size="scriptsize", warning=FALSE, message=FALSE>>=
-json.files = c()
-for (album in album.dirs){
-  #Splits the string of the directory into Music, Artist, Album
-  split.string = str_split(album, pattern = "/", simplify = TRUE)
-  album.name = split.string[1, 3]
-  artist.name = split.string[1, 2]
-  art.n.album = paste(artist.name, album.name, sep = "-") 
-  #artist and album comined in desired format
 
-  #Lists the music files in each album, goes through them, 
-  #creates the final desired string of 
-  #[artist name]-[album name]-[trackname].json
-  music.files <- list.files(album)
-  for (music.file in music.files){
-    if (str_count(music.file, pattern = ".wav")){
-      #Makes sure we are only dealing with .wav files
-      file.path = str_split(music.file, pattern = ".wav", simplify =  TRUE)
-      file.path = str_split(file.path, pattern = "-", simplify = TRUE)
-      song.name = file.path[1, 3]
-      final.path = paste(art.n.album, "-", song.name, ".json", sep = "")
-      json.files = append(wav.files, final.path) #will contain all of the .wav files in all of the albums 
-    }
-  }
-}
-
-code.to.process = paste("streaming_extractor_music.exe ", json.files)
-@
 
 
 
@@ -133,9 +142,7 @@ code.to.process = paste("streaming_extractor_music.exe ", json.files)
 
 Finally, using the \texttt{writeLines()} function, we wrote the command line for each file to a \texttt{.txt} file called batfile.txt. This code can be generalized for any set of .wav files provided the same initial format of directories and file name.
 
-<<echo=FALSE, eval = FALSE, size="scriptsize", warning=FALSE, message=FALSE>>=
-writeLines(code.to.process, "batfile.txt")
-@
+
 
 
 

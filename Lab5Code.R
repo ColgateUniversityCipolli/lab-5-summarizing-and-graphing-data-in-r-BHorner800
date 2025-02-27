@@ -12,6 +12,7 @@
 library(stringr)
 library(jsonlite)
 library(tidyverse)
+library(xtable)
 
 
 ##############################################################################
@@ -19,6 +20,9 @@ library(tidyverse)
 #Function using tidyverse to determine whether Allentown is out of range, 
 #unusual, wor within the range for each band
 ##############################################################################
+
+
+######TESTING WITH JUST OVERALL LOUDNESS#######
 
 #Loading the data
 allentown.data = read.csv("./data/essentia.data.allentown.csv")
@@ -43,6 +47,10 @@ test.data|>
     .default = "Within Range"
   ))
 
+
+
+
+########DOING IT FOR ALL OF THE DATA##########
 
 #Loading the data
 allentown.data = read.csv("./data/essentia.data.allentown.csv")
@@ -84,6 +92,8 @@ within.range = function(feature, allentown.data, test.data){
 
 
 
+
+
 ##############################################################################
 #Step 2
 #Applying function to the data to see in which features Allentown differs from
@@ -109,5 +119,49 @@ for (feature in colnames(other.songs.data)){
 }
 
 
-?merge()
-?add_column
+
+
+
+
+
+
+
+
+##############################################################################
+#Step 3
+#Creating a tblae in Latex that summarizes select features
+#     select features = ones where all artists "within range" descriptor 
+#     are NOT the same
+##############################################################################
+
+
+#loop through all the descriptors that are not artist:
+same.cols = c() #these are cols that have the same value for all artists
+for (i in (2:length(descriptors.df))){
+  AGO = descriptors.df[[i]][1]
+  MO = descriptors.df[[i]][2]
+  TFB = descriptors.df[[i]][3]
+  if (AGO == MO & MO == TFB){
+    same.cols = append(same.cols, i)
+  }
+}
+
+diff.descriptors.df = descriptors.df[-same.cols]
+
+
+#Counting how many times "within range" "outlying" and "out of range" appear in
+#each row (aka. each artist.) This line of code was taken from ChatGPT
+#The 1 in apply does this by row, as opposed to 2 which is by column
+count_within_range = apply(descriptors.df, 1, function(row) sum(row == "Within Range"))
+count_outlying = apply(descriptors.df, 1, function(row) sum(row == "Outlying"))
+count_out_of_range = apply(descriptors.df, 1, function(row) sum(row == "Out of Range"))
+
+summary.df = data.frame(artist = c("All Get Out", 
+                                   "Manchester Orchestra",
+                                   "The Front Bottoms"),
+                        Within_Range = count_within_range,
+                        Outlying = count_outlying,
+                        Out_of_Range = count_out_of_range)
+
+
+xtable(summary.df)                    
