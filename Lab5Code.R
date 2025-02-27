@@ -91,17 +91,23 @@ within.range = function(feature, allentown.data, test.data){
 ##############################################################################
 
 #Looping through each feature of the data
-descriptors.df = data.frame()
+descriptors.df = data.frame(artist = c("All Get Out", 
+                              "Manchester Orchestra", 
+                              "The Front Bottoms"))
+
+i = 1 #counter
 for (feature in colnames(other.songs.data)){
   #Only evaluating numeric features
   if (is.numeric(allentown.data[[feature]])){
-    
+    i = i + 1
     #Running the function
     result = within.range(feature, allentown.data, other.songs.data)
-    #print(result)
+    descriptors.df = add_column(descriptors.df, feature = result$description)
+    #Renames the column to the correct feature name
+    names(descriptors.df)[i] = feature
   }
 }
 
 
 ?merge()
-?IQR
+?add_column
