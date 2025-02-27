@@ -90,14 +90,14 @@
 
 \begin{multicols}{2}
 \begin{abstract}
-In an attempt to determine which band contributed most to the song \emph{Allentown} by Manchester Orchestra and the Front Bottoms we analyze the Essentia data of their songs. Beginning with the \texttt{.wav} files for each of their songs, we convert them to a batch file of \texttt{.json} outputs which we can run through Essentia. 
+In an attempt to determine which band contributed most to the song \emph{Allentown} by Manchester Orchestra and the Front Bottoms, with a contribution by Nate Hussey of All Get Out, we analyze the Essentia data of their songs. Beginning with the \texttt{.wav} files for each of their songs, we convert them to a batch file of \texttt{.json} outputs which we can run through Essentia. These outputs, along with other key descriptive features of each song are analyzed for each artist and then compared to Allentown, determining whether it is \emph{Within Range, Out of Range}, or \emph{Outlying}. These results indicate that the Manchester Orchestra contributed the most to the song, as they have the most features of Allentown \emph{Within Range}, while the other contributors have the most \emph{Out of Range} and \emph{Outlying} features.
 
 \end{abstract}
 
 \noindent \textbf{Keywords:} Batch File, Data Processing, Music, Essentia
 
 \section{Introduction}
-  In 2018, two of Professor Cipolli's favorite bands -- The Front Bottoms and Manchester Orchestra - released a song they collaborated on called Allentown. In a statement to Noisey --  the music arm of Vice -- Andy Hull of Manchester Orchestra recalled that the creation of this track started when Nate Hussey of All Get Out sent him the first four lines of the track. Andy Hull worked out the melody and music and shared it with Brian Sella of The Front Bottoms, who then helped develop the chorus.
+  In 2018, two of Professor Cipolli's favorite bands -- The Front Bottoms and Manchester Orchestra -- released a song they collaborated on called Allentown. In a statement to Noisey --  the music arm of Vice -- Andy Hull of Manchester Orchestra recalled that the creation of this track started when Nate Hussey of All Get Out sent him the first four lines of the track. Andy Hull worked out the melody and music and shared it with Brian Sella of The Front Bottoms, who then helped develop the chorus.
 
 \textbf{This brings us to an interesting question:} which band contributed most to the song?
  
@@ -105,16 +105,16 @@ In an attempt to determine which band contributed most to the song \emph{Allento
 \subsection{Task}
   To attempt to answer this question, we need to know what each band ``sounds like." This can be done by using Essentia -- an open-source program for music analysis, description, and synthesis -- to create data about each band's tracks \citep{Essentia}. 
   
-  In this Lab, we create generalized code for building batch file that contains the command to run Essentia on every track. Then, we will clean the data and extract key descriptors from the \texttt{.json} files for each song and the \texttt{.csv} file with data from the Essentia models. 
+  First, we will create generalized code for building batch file that contains the command to run Essentia's extractor on every track. Then, we will clean the data and collect key descriptors from the \texttt{.json} files for each song and merge with the \texttt{.csv} file with data from the Essentia models. Finally, we will compare the key descriptive features from ``Allentown" to that of other songs by each artist, determining whether it is within that artist's range or not, indicating who contributed more. 
 
 
 
 \section{Methods}
-  We divide our overall goal in to two tasks. \textbf{Task 1}, where we build the batch files for data processing and \textbf{Task 2}, where we process the data. For this Lab, we use test files created by Professor Cipolli located in a directory labeled ``MUSIC" for \textbf{Task 1} and the actual \texttt{.json} song files in the directory ``EssentiaOutput" for \textbf{Task 2}.
+  We divide our overall goal in to two tasks. \textbf{Task 1}, where we build the batch files for data processing, \textbf{Task 2}. For this Lab, we initially use test files created by Professor Cipolli located in a directory labeled ``MUSIC" for \textbf{Task 1}, followed by the actual \texttt{.json} song files in the directory ``EssentiaOutput" for \textbf{Task 2}.
 
 
 \subsection{Task 1: Building a Batch File for Data Processing}
-  To write the code to create the desired batch file, we will need to change the storage format from \texttt{[track number]-[artist]-[track name].wav} to \texttt{[artist name]-[album name]-[track name].json}. We will be using the \texttt{stringr} \citep{stringr} and \texttt{jsonlite} \citep{jsonlite} packages for \texttt{R} throughout the code to split the file names and process \texttt{.json} files.
+  To create the desired batch file, we need to change the format from \texttt{[track number]-[artist]-[track name].wav} to \texttt{[artist name]-[album name]-[track name].json}. We will be using the \texttt{stringr} \citep{stringr} and \texttt{jsonlite} \citep{jsonlite} packages for \texttt{R} throughout the code to split the file names and process \texttt{.json} files.
   
 
 
@@ -131,8 +131,8 @@ For the test \texttt{.wav} files, we isolate the subdirectories (artists and alb
 
 
 
-  For each album of the test, we isolated each \texttt{.wav} file using \texttt{str\_count()} to subset all \texttt{.wav} files from the current album subdirectory. For each file (song) we then used \texttt{str\_split()} to extract just the track name, which we then pasted together with the artist name, track name, and ``.json" to create the new, desired format for the file name: \texttt{[artist name]-[album name]-[track name].json}.
-  To create the command to run Essentia, we pasted \texttt{streaming\_extractor\_music.exe} to the new file name to create the command line prompt for the current track.
+  
+  To create the command to run Essentia on each of the files, we pasted \texttt{streaming\_extractor\_music.exe} to the new file name to create the command line prompt for the current track.
 
 
 
@@ -152,22 +152,40 @@ Finally, using the \texttt{writeLines()} function, we wrote the command line for
 
 
 \subsection{Task 2: Process JSON Output}
-As a test for our code, we first analyzed the \texttt{.json} output for the song ``Au Revoir (Adios)," by isolating the key descriptors of \texttt{average\_loudness}, \texttt{mean} of \texttt{spectral\_energy, danceability, bpm, key\_key} (musical key) \texttt{key\_scale} (musical mode), and \texttt{length} (duration in seconds). Having tested the code, we then expanded it to our final version using the song ``Au Revoir (Adios)" as an example. 
+As a test for our analysis of the Essentia output, we first analyzed the \texttt{.json} output for the song ``Au Revoir (Adios)," by isolating the key descriptors of \texttt{average\_loudness}, \texttt{mean} of \texttt{spectral\_energy, danceability, bpm, key\_key} (musical key) \texttt{key\_scale} (musical mode), and \texttt{length} (duration in seconds). 
 
 \subsection{Cleaning the Data}
-  After loading the \texttt{.json} data from ``Au Revoir (Adios)," we extracted the descriptors of artist, album, track, the overall loudness, spectral energy, dissonance, pitch salience, tempo in bpm, beat loudness, danceability, and tuning frequency from the \texttt{.json} file. We can then loop this code through every \texttt{.json} file in the \texttt{EssentiaOutput} folder and save the output as a new dataframe now containing just those song descriptors. 
-  To use the data from the Essentia models, saved in the \texttt{EssentiaModelOutput.csv} file, we extracted the \texttt{valence} and \texttt{arousal}, \texttt{aggressive, happy, party, relaxed}, and \texttt{sad} moods, \texttt{acoustic} and \texttt{electric} sounds, \texttt{instrumental} (absence of voice), and \texttt{timbre} via the average of values from the relevant datasets of DEAM, emoMusic, MuSe, EffNew, and MSD-MusiCNN. We only saved these values in addition to \texttt{artist, album} and \texttt{track}.
-  Finally, we merged the data from the \texttt{streaming\_music\_extractor} calls (the \texttt{.json} files), the Essentia models, and \textbf{LIWCOutput} into one data frame. For future use, we created two separate files: \texttt{trainingdata.csv} that contains all tracks except ``Allentown," and \texttt{testingdata.csv} that contains just the track ``Allentown."
+  Using ``Aur Revoir (Adios) as the example, we can loop through every \texttt{.json} file in the \texttt{EssentiaOutput} folder and save the output as a new dataframe which now contains just each artist, album, and song's descriptors. 
+  To use the data from the Essentia models, saved in the \texttt{EssentiaModelOutput.csv} file, we extracted the \texttt{valence} and \texttt{arousal}, \texttt{aggressive, happy, party, relaxed}, and \texttt{sad} moods, \texttt{acoustic} and \texttt{electric} sounds, \texttt{instrumental} (absence of voice), and \texttt{timbre} via averaging the values for each descriptor from the datasets of DEAM, emoMusic, MuSe, EffNew, and MSD-MusiCNN. We only saved these values in addition to \texttt{artist, album} and \texttt{track}.
   
+  Finally, we merged the data from the music extractor calls (the \texttt{.json} files), the Essentia models, and \textbf{LIWCOutput} (Linguistic, Inquiry, and Word Count) psychometric properties into one data frame. For future use, we created two separate files: \texttt{trainingdata.csv} that contains all tracks except ``Allentown," and \texttt{testingdata.csv} that contains just the track ``Allentown."
+
+
+\subsection{Analysis}
+To determine each band's contribution to ``Allentown," we summarized the min, max, lower fence, and upper fence for each descriptive feature, grouped by artist. We can then use this to determine whether that same feature on `Allentown" is \emph{Within Range} (feature value is less than minimum), \emph{Outlying} (feature value is between lower and upper fence), or \emph{Out of Range} (feature is greater than max) for each artist, which indicates how typical ``Allentown" is compared to their other works. More features \emph{Within Range} and less \emph{Out of Range} would indicate that the artist contributed more to the song. 
 
 
 \section{Results}
-To answer our question of which band contributed most to a song, we need to be able to analyze the data of the song to see what it ``sounds like." Having cleaned the data, we can begin to look at the data comparing artists in the key extracted descriptors. An example plot that could possibly give us this insight is comparing the \texttt{feeling} descriptors between artists.
+Counting the number of features, grouped by artist, which are typical of them indicates that Manchester Orchestra contribtued most to the song ``Allentown." Not only does it have the most number of features that are \emph{Within Range} (183), but also has the least \emph{Out of Range} features with jsut three. The outlying values across all artists are comparable, with All Get Out and The Front Bottoms also having comparable within and out of range values, both differing from Manchester Orchestra. While individual features might be contributed to more heavily by one group, such as the LIWC descriptor \texttt{you} which is \emph{Out of Range} for Manchester Orchestra, but within for the other two artists, in total, ``Allentown" was within the range of the Manchester Orchestra the most.
 
+% latex table generated in R 4.4.2 by xtable 1.8-4 package
+% Thu Feb 27 12:47:13 2025
+\begin{table}[ht]
+\centering
+\begin{tabular}{rlrrr}
+  \hline
+ & artist & Within\_Range & Outlying & Out\_of\_Range \\ 
+  \hline
+1 & All Get Out & 158 &  17 &  22 \\ 
+  2 & Manchester Orchestra & 183 &  11 &   3 \\ 
+  3 & The Front Bottoms & 156 &  11 &  30 \\ 
+   \hline
+\end{tabular}
+\end{table}
 
 
 \section{Discussion}
-In this Lab, we laid the ground work for analyzing many more songs, as now we have the code to process them into \texttt{.json} files to be output and analyzed for key descriptors. Additionally, we created the code to clean and organize the song data, while getting practice in installing, loading, and using libraries, working with character objects, coding \texttt{for()} loops, and accessing elements of vectors and lists.
+In this Lab, we laid the ground work for analyzing many more songs by other artists, as now we have the code to process them into \texttt{.json} files to be output and analyzed for key descriptors. Additionally, we created the code to clean and organize the song data, while getting practice in installing, loading, and using libraries, working with character objects, coding \texttt{for()} loops, and accessing elements of vectors and lists. Finally, comparing across artists allows us to now determine who, among a collaboration, contributed the most to specific song, as we did when determining Manchester Orchestra contributed the most to ``Allentown."
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Bibliography

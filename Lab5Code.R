@@ -165,3 +165,4 @@ summary.df = data.frame(artist = c("All Get Out",
 
 
 xtable(summary.df)                    
+?xtable
